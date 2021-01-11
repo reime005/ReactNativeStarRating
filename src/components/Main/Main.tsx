@@ -8,6 +8,8 @@ import { ThemeProvider } from 'styled-components';
 import '../../config/i18n';
 import { BottomNavigator } from '../../navigators/BottomNavigator';
 import { darkTheme, lightTheme } from '../../config/theme';
+import { RatingBottomModal } from './modal';
+import { DragAndSnap } from '../DragAndSnap/DragAndSnap';
 
 export const Main = () => {
   const colorScheme = useColorScheme();
@@ -17,7 +19,8 @@ export const Main = () => {
       <ThemeProvider theme={colorScheme === 'dark' ? darkTheme : lightTheme}>
         <SafeAreaProvider>
           <SafeAreaView style={{ flex: 1 }}>
-            <BottomNavigator />
+            <DragAndSnap />
+            <RatingBottomModal visible />
           </SafeAreaView>
         </SafeAreaProvider>
       </ThemeProvider>
