@@ -1,28 +1,11 @@
 import React from 'react';
-import { View, Text, PanResponder } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedProps,
-  useSharedValue,
-} from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
-// const AnimatedStop = Animated.createAnimatedComponent(Stop);
-// const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
-
 const Star = (props: any) => {
-  React.useEffect(() => {
-
-  }, [props.offset]);
+  React.useEffect(() => {}, [props.offset]);
 
   return (
-    <Svg
-      pointerEvents="none"
-      width="70"
-      height="70"
-      viewBox="0 0 988 941"
-      onLayout={(e) => console.warn(e.nativeEvent.layout.x)}>
+    <Svg style={{ marginHorizontal: props.distance || 0 }} width={props.size} height={props.size} viewBox="0 0 988 941">
       <Defs>
         <LinearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
           <Stop offset={props.offset} stopColor="#FFD080" stopOpacity="1" />

@@ -39,6 +39,10 @@ export const Main = () => {
             <DragAndSnap />
             <RatingBottomModal
               visible={modalVisible}
+              starSize={60}
+              starRating={3.5}
+              maxStars={4}
+              onRatingChanged={(r) => console.log(r)}
               onClose={() => setModalVisible(false)}>
               <Star />
             </RatingBottomModal>

@@ -1,25 +1,24 @@
-import { BlurView } from '@react-native-community/blur';
 import React from 'react';
+import { BlurView } from '@react-native-community/blur';
 import {
   View,
   Animated,
   PanResponder,
   Dimensions,
   StyleSheet,
-  LayoutRectangle,
+  GestureResponderEvent,
+  PanResponderGestureState,
 } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import {
-  useAnimatedGestureHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
-import { Circle } from 'react-native-svg';
 import Star from './Star';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
+  onRatingChanged: (rating: number) => void;
   children: React.ReactNode | React.ReactNodeArray;
+  starSize: number;
+  maxStars?: number;
+  starRating?: number;
 }
 
 const { width, height } = Dimensions.get('screen');
@@ -31,15 +30,9 @@ export const RatingBottomModal = (props: Props) => {
     return null;
   }
 
-  const [offset, setOffset] = React.useState(0);
-
-  const starBoxLayout = React.useRef<LayoutRectangle>({
-    height: 0,
-    width: 0,
-    x: 0,
-    y: 0,
-  });
   const pan = React.useRef(new Animated.ValueXY({ x: 0, y: height })).current;
+  const [offset, setOffset] = React.useState(props.starRating || 0);
+  const animatedWidth = React.useRef(0);
 
   const openAnim = () => {
     Animated.spring(pan.y, {
@@ -60,38 +53,54 @@ export const RatingBottomModal = (props: Props) => {
     props.onClose();
   };
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
+    props.onRatingChanged(offset);
+  }, [offset]);
+
+  React.useEffect(() => {
     if (!props.visible) {
       return;
     }
 
     openAnim();
+  }, [props.visible]);
+
+  const changeOffset = React.useCallback((e: GestureResponderEvent) => {
+    const { nativeEvent } = e;
+
+    const distance = (width - animatedWidth.current) / 2;
+    const starSize = animatedWidth.current / 4;
+
+    let v = Number((nativeEvent.pageX - distance) / starSize);
+
+    const rest = v - Math.trunc(v);
+
+    if (rest <= 0.5) {
+      v = Math.trunc(v) + 0.5;
+    } else {
+      v = Math.trunc(v) + 1;
+    }
+
+    setOffset(v);
   }, []);
+
+  const changeModalPosition = React.useCallback(
+    (gs: PanResponderGestureState) => {
+      const value = height - MODAL_HEIGHT + gs.dy;
+
+      // prevent dragging too high or too low
+      if (value >= height || value < height - MODAL_HEIGHT) {
+        return;
+      }
+
+      pan.y.setValue(value);
+    },
+    [],
+  );
 
   const responder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: (e) => {
-        const { pageY, pageX } = e.nativeEvent;
-
-        console.warn('lower');
-
-        const upperMost = starBoxLayout.current.y + height - MODAL_HEIGHT;
-        const lowerMost =
-          starBoxLayout.current.y +
-          starBoxLayout.current.height +
-          height -
-          MODAL_HEIGHT;
-
-        // if (pageY <= upperMost && pageY >= lowerMost) {
-        //   console.warn('1');
-        // }
-
-        // if (pageY >= upperMost && pageY <= lowerMost) {
-        //   console.warn('1');
-        // }
-
-        // console.warn(e.nativeEvent.pageY);
-
         // check if touch is in the modal area
         if (e.nativeEvent.pageY > height - MODAL_HEIGHT) {
           return true;
@@ -104,15 +113,8 @@ export const RatingBottomModal = (props: Props) => {
       onPanResponderGrant: () => {
         // TODO: show some visual feedback here
       },
-      onPanResponderMove: (_, { dy }) => {
-        const value = height - MODAL_HEIGHT + dy;
-
-        // prevent dragging too high or too low
-        if (value >= height || value < height - MODAL_HEIGHT) {
-          return;
-        }
-
-        pan.y.setValue(value);
+      onPanResponderMove: (_, gs) => {
+        changeModalPosition(gs);
       },
       onPanResponderRelease: (_, { dy }) => {
         if (dy < MODAL_HEIGHT / 2) {
@@ -127,58 +129,17 @@ export const RatingBottomModal = (props: Props) => {
   const responder2 = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: (e, gs) => {
-        console.warn(gs);
-        const { nativeEvent } = e
-        let v = Number(nativeEvent.locationX / 70);
-
-        const rest = v -Math.trunc(v)
-
-        if (rest <= 0.5) {
-          v = Math.trunc(v);
-        } else {
-          v = Math.trunc(v) + 0.5;
-        }
-
-        setOffset(v);
-
+        changeOffset(e);
         return true;
       },
-      // onMoveShouldSetPanResponder: ({ nativeEvent }, { dy }) => {
-      //   return true
-      // },
-      // onMoveShouldSetPanResponderCapture: (e, { dy }) => {
-      //   const { nativeEvent } = e;
-      //   return false
-      // },
-      onPanResponderMove: (e, { dy }) => {
-        const { nativeEvent } = e;
-
-        if (dy > 10) {
-          console.warn(dy);
-
-          const value = height - MODAL_HEIGHT + dy;
-
-          // prevent dragging too high or too low
-          if (value >= height || value < height - MODAL_HEIGHT) {
-            return;
-          }
-
-          pan.y.setValue(value);
-
+      onPanResponderMove: (e, gs) => {
+        // user swiped down on a star
+        if (gs.dy > 10) {
+          changeModalPosition(gs);
           return;
         }
 
-        let v = Number(nativeEvent.locationX / 70);
-
-        const rest = v -Math.trunc(v)
-
-        if (rest <= 0.5) {
-          v = Math.trunc(v);
-        } else {
-          v = Math.trunc(v) + 0.5;
-        }
-
-        setOffset(v);
+        changeOffset(e);
       },
       onPanResponderRelease: (_, { dy }) => {
         if (dy < MODAL_HEIGHT / 2) {
@@ -234,19 +195,28 @@ export const RatingBottomModal = (props: Props) => {
                 alignItems: 'center',
                 marginTop: 24,
               }}>
-              <Animated.View {...responder2.panHandlers}>
-                <View
-                  style={{
-                    flexDirection: 'row',
+              <View
+                style={{
+                  flexDirection: 'row',
+                }}>
+                <Animated.View
+                  onLayout={(e) => {
+                    animatedWidth.current = e.nativeEvent.layout.width;
                   }}
-                  onLayout={(e) =>
-                    (starBoxLayout.current = e.nativeEvent.layout)
-                  }>
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    return <Star key={i} offset={offset - i} />;
+                  style={{ flexDirection: 'row' }}
+                  {...responder2.panHandlers}>
+                  {Array.from({ length: props.maxStars || 5 }).map((_, i) => {
+                    return (
+                      <Star
+                        key={i}
+                        size={props.starSize}
+                        distance={8}
+                        offset={offset - i}
+                      />
+                    );
                   })}
-                </View>
-              </Animated.View>
+                </Animated.View>
+              </View>
             </View>
           </View>
         </Animated.View>
