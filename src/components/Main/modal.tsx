@@ -11,6 +11,7 @@ import {
   Text,
 } from 'react-native';
 import Star from './Star';
+import Stars from './Stars';
 
 interface Props {
   visible: boolean;

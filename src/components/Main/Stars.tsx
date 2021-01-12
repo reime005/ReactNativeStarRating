@@ -1,7 +1,12 @@
 import React from 'react';
-import Star from './Star';
+import Star, { IStarProps } from './Star';
 
-const Stars = (props: any) => {
+interface IStarsProps extends IStarProps {
+  maxStars: number;
+  starSize: number;
+}
+
+const Stars = (props: IStarsProps) => {
   return (
     <>
       {Array.from({ length: props.maxStars || 5 }).map((_, i) => {

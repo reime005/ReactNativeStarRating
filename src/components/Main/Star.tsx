@@ -1,9 +1,13 @@
 import React from 'react';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
-const Star = (props: any) => {
-  React.useEffect(() => {}, [props.offset]);
+export interface IStarProps {
+  offset: number;
+  size: number;
+  distance?: number;
+}
 
+const Star = (props: IStarProps) => {
   return (
     <Svg
       style={{ marginHorizontal: props.distance || 0 }}
