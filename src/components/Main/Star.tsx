@@ -5,7 +5,11 @@ const Star = (props: any) => {
   React.useEffect(() => {}, [props.offset]);
 
   return (
-    <Svg style={{ marginHorizontal: props.distance || 0 }} width={props.size} height={props.size} viewBox="0 0 988 941">
+    <Svg
+      style={{ marginHorizontal: props.distance || 0 }}
+      width={props.size}
+      height={props.size}
+      viewBox="0 0 988 941">
       <Defs>
         <LinearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
           <Stop offset={props.offset} stopColor="#FFD080" stopOpacity="1" />

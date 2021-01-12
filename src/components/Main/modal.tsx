@@ -8,6 +8,7 @@ import {
   StyleSheet,
   GestureResponderEvent,
   PanResponderGestureState,
+  Text,
 } from 'react-native';
 import Star from './Star';
 
@@ -15,7 +16,6 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onRatingChanged: (rating: number) => void;
-  children: React.ReactNode | React.ReactNodeArray;
   starSize: number;
   maxStars?: number;
   starRating?: number;
@@ -69,16 +69,16 @@ export const RatingBottomModal = (props: Props) => {
     const { nativeEvent } = e;
 
     const distance = (width - animatedWidth.current) / 2;
-    const starSize = animatedWidth.current / 4;
+    const starSize = animatedWidth.current / (props.maxStars || 5);
 
     let v = Number((nativeEvent.pageX - distance) / starSize);
 
     const rest = v - Math.trunc(v);
 
     if (rest <= 0.5) {
-      v = Math.trunc(v) + 0.5;
+      v = Math.trunc(v);
     } else {
-      v = Math.trunc(v) + 1;
+      v = Math.trunc(v) + 0.5;
     }
 
     setOffset(v);
@@ -98,7 +98,7 @@ export const RatingBottomModal = (props: Props) => {
     [],
   );
 
-  const responder = React.useRef(
+  const modalResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: (e) => {
         // check if touch is in the modal area
@@ -126,7 +126,7 @@ export const RatingBottomModal = (props: Props) => {
     }),
   ).current;
 
-  const responder2 = React.useRef(
+  const starPanResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: (e, gs) => {
         changeOffset(e);
@@ -134,7 +134,7 @@ export const RatingBottomModal = (props: Props) => {
       },
       onPanResponderMove: (e, gs) => {
         // user swiped down on a star
-        if (gs.dy > 10) {
+        if (gs.dy > 50) {
           changeModalPosition(gs);
           return;
         }
@@ -153,7 +153,7 @@ export const RatingBottomModal = (props: Props) => {
 
   return (
     <Animated.View
-      {...responder.panHandlers}
+      {...modalResponder.panHandlers}
       style={[
         {
           position: 'absolute',
@@ -167,7 +167,7 @@ export const RatingBottomModal = (props: Props) => {
       <BlurView
         style={StyleSheet.absoluteFillObject}
         blurType="light"
-        blurAmount={10}
+        blurAmount={5}
         reducedTransparencyFallbackColor="white"
       />
       <View>
@@ -188,15 +188,30 @@ export const RatingBottomModal = (props: Props) => {
               width: '100%',
               height: MODAL_HEIGHT,
               backgroundColor: '#fff',
+              shadowColor: '#ccc',
+              shadowOffset: { height: -1, width: 0 },
+              shadowRadius: 15,
+              shadowOpacity: 0.1,
             }}>
             <View
               style={{
                 flex: 1,
+                paddingTop: 24,
                 alignItems: 'center',
-                marginTop: 24,
+                justifyContent: 'flex-start'
               }}>
+              <Text
+                style={{
+                  textTransform: 'uppercase',
+                  fontWeight: 'bold',
+                  fontSize: 16,
+                }}>
+                rate this book
+              </Text>
+
               <View
                 style={{
+                  marginTop: 16,
                   flexDirection: 'row',
                 }}>
                 <Animated.View
@@ -204,7 +219,7 @@ export const RatingBottomModal = (props: Props) => {
                     animatedWidth.current = e.nativeEvent.layout.width;
                   }}
                   style={{ flexDirection: 'row' }}
-                  {...responder2.panHandlers}>
+                  {...starPanResponder.panHandlers}>
                   {Array.from({ length: props.maxStars || 5 }).map((_, i) => {
                     return (
                       <Star
