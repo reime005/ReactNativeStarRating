@@ -12,18 +12,13 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 // const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
 const Star = (props: any) => {
-  React.useEffect(() => {});
+  React.useEffect(() => {
 
-  const foo = useSharedValue('0.55');
-
-  // const animProps = useAnimatedProps(() => {
-  //   return {
-  //     offset: "0.55"
-  //   }
-  // })
+  }, [props.offset]);
 
   return (
     <Svg
+      pointerEvents="none"
       width="70"
       height="70"
       viewBox="0 0 988 941"

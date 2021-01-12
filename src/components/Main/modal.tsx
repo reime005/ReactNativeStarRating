@@ -126,15 +126,67 @@ export const RatingBottomModal = (props: Props) => {
 
   const responder2 = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: (e) => {
+      onStartShouldSetPanResponder: (e, gs) => {
+        console.warn(gs);
+        const { nativeEvent } = e
+        let v = Number(nativeEvent.locationX / 70);
+
+        const rest = v -Math.trunc(v)
+
+        if (rest <= 0.5) {
+          v = Math.trunc(v);
+        } else {
+          v = Math.trunc(v) + 0.5;
+        }
+
+        setOffset(v);
+
         return true;
       },
-      onPanResponderMove: ({ nativeEvent }, {}) => {
-        const v = (nativeEvent.locationX / 70);
+      // onMoveShouldSetPanResponder: ({ nativeEvent }, { dy }) => {
+      //   return true
+      // },
+      // onMoveShouldSetPanResponderCapture: (e, { dy }) => {
+      //   const { nativeEvent } = e;
+      //   return false
+      // },
+      onPanResponderMove: (e, { dy }) => {
+        const { nativeEvent } = e;
+
+        if (dy > 10) {
+          console.warn(dy);
+
+          const value = height - MODAL_HEIGHT + dy;
+
+          // prevent dragging too high or too low
+          if (value >= height || value < height - MODAL_HEIGHT) {
+            return;
+          }
+
+          pan.y.setValue(value);
+
+          return;
+        }
+
+        let v = Number(nativeEvent.locationX / 70);
+
+        const rest = v -Math.trunc(v)
+
+        if (rest <= 0.5) {
+          v = Math.trunc(v);
+        } else {
+          v = Math.trunc(v) + 0.5;
+        }
 
         setOffset(v);
       },
-      onPanResponderRelease: (_, { dy }) => {},
+      onPanResponderRelease: (_, { dy }) => {
+        if (dy < MODAL_HEIGHT / 2) {
+          openAnim();
+        } else {
+          closeAnim();
+        }
+      },
     }),
   ).current;
 
